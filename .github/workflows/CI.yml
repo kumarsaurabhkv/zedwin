@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "v[0-9]+.[0-9]+.x"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  windows_tests:
+    timeout-minutes: 60
+    name: (Windows) Run Clippy and tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          clean: false
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Rust
+        run: rustup update stable
+
+      - name: Run Clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test --release
+
+      - name: Build Zed
+        run: cargo build --release
+
+  bundle-windows-x64:
+    timeout-minutes: 60
+    name: Create a Windows x64 bundle
+    runs-on: windows-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || contains(github.event.pull_request.labels.*.name, 'run-bundling') }}
+    needs: [windows_tests]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          clean: false
+
+      - name: Build the project
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Run the application
+        run: cargo run --release --target x86_64-pc-windows-msvc
+
+      - name: Upload Windows bundle to workflow run if main branch or specific label
+        uses: actions/upload-artifact@v4
+        if: ${{ github.ref == 'refs/heads/main' }} || contains(github.event.pull_request.labels.*.name, 'run-bundling') }}
+        with:
+          name: Zed_${{ github.event.pull_request.head.sha || github.sha }}.exe
+          path: target/x86_64-pc-windows-msvc/release/zed.exe
+
+      - name: Upload app bundle to release
+        uses: softprops/action-gh-release@v1
+        if: ${{ env.RELEASE_CHANNEL == 'preview' || env.RELEASE_CHANNEL == 'stable' }}
+        with:
+          draft: true
+          prerelease: ${{ env.RELEASE_CHANNEL == 'preview' }}
+          files: |
+            target/x86_64-pc-windows-msvc/release/zed.exe
+          body: ""
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
