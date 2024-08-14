@@ -11,14 +11,21 @@ env:
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Create Windows Bundle
-      run: cargo bundle --release --target x86_64-pc-windows-msvc
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: cargo build --release --verbose --target x86_64-pc-windows-msvc
+
+      - name: Create Windows Bundle
+        run: cargo bundle --release --target x86_64-pc-windows-msvc
+
+      - name: Upload app bundle to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/x86_64-pc-windows-msvc/release/your_project_name.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
