@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::os::fd::{AsFd, AsRawFd, FromRawFd};
-use std::panic::Location;
+use std::panic::{AssertUnwindSafe, Location};
 use std::rc::Weak;
 use std::{
     path::{Path, PathBuf},
@@ -18,12 +18,12 @@ use std::{
     time::Duration,
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context as _};
 use async_task::Runnable;
 use calloop::channel::Channel;
 use calloop::{EventLoop, LoopHandle, LoopSignal};
 use flume::{Receiver, Sender};
-use futures::channel::oneshot;
+use futures::{channel::oneshot, future::FutureExt};
 use parking_lot::Mutex;
 use util::ResultExt;
 
@@ -382,14 +382,14 @@ impl<P: LinuxClient + 'static> Platform for P {
     }
 
     fn open_with_system(&self, path: &Path) {
-        let executor = self.background_executor().clone();
         let path = path.to_owned();
-        executor
+        self.background_executor()
             .spawn(async move {
                 let _ = std::process::Command::new("xdg-open")
                     .arg(path)
                     .spawn()
-                    .expect("Failed to open file with xdg-open");
+                    .context("invoking xdg-open")
+                    .log_err();
             })
             .detach();
     }
@@ -489,7 +489,12 @@ impl<P: LinuxClient + 'static> Platform for P {
                     let username = attributes
                         .get("username")
                         .ok_or_else(|| anyhow!("Cannot find username in stored credentials"))?;
-                    let secret = item.secret().await?;
+                    // oo7 panics if the retrieved secret can't be decrypted due to
+                    // unexpected padding.
+                    let secret = AssertUnwindSafe(item.secret())
+                        .catch_unwind()
+                        .await
+                        .map_err(|_| anyhow!("oo7 panicked while trying to read credentials"))??;
 
                     // we lose the zeroizing capabilities at this boundary,
                     // a current limitation GPUI's credentials api
