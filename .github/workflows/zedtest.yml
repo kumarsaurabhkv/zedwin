@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:     # (optional) lets you run it manually from the GitHub UI
+  workflow_dispatch:     # Allows manual trigger from GitHub UI
 
 jobs:
   build:
@@ -32,15 +32,15 @@ jobs:
           toolchain: nightly
           override: true
 
-      - name: Rust Cache
+      - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.backend }}
 
       - name: Build release
-        run: cargo build --release
         env:
           CARGO_BUILD_RUSTFLAGS: "-C target-feature=+crt-static ${{ matrix.rustflags }}"
+        run: cargo build --release
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
