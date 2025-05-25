@@ -1,3 +1,13 @@
+name: Build Zed Nightly
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Every day at midnight UTC
+  push:
+    branches:
+      - main
+  workflow_dispatch:     # (optional) lets you run it manually from the GitHub UI
+
 jobs:
   build:
     runs-on: windows-latest
