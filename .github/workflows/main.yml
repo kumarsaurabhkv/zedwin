@@ -1,34 +1,31 @@
-name: Build Zed (Windows)
+name: Cross-Compile Windows Binary
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  schedule:
+    - cron: '0 19 * * *'  # Daily at 7 PM UTC
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Cross-Compile to Windows on Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+      - name: Install Rust + Windows target
+        run: |
+          rustup target add x86_64-pc-windows-gnu
 
-      - name: Cache cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            C:\Users\runneradmin\.cargo\registry
-            C:\Users\runneradmin\.cargo\git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install MinGW (Windows linker)
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64
 
-      - name: Build project
-        run: cargo build --release
+      - name: Build Windows binary
+        run: cargo build --release --target x86_64-pc-windows-gnu
+
+      - name: Upload .exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zedwin-windows
+          path: target/x86_64-pc-windows-gnu/release/*.exe
