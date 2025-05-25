@@ -39,7 +39,7 @@ jobs:
 
       - name: Build release
         env:
-          CARGO_BUILD_RUSTFLAGS: "-C target-feature=+crt-static ${{ matrix.rustflags }}"
+          CARGO_BUILD_RUSTFLAGS: "${{ matrix.rustflags }}"
         run: cargo build --release
 
       - name: Upload binary
