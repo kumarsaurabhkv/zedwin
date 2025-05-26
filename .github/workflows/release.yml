@@ -44,10 +44,11 @@ jobs:
           body: ${{ inputs.release_body }}
           draft: false
           prerelease: ${{ inputs.is_prerelease }}
-          make_latest: true
+          make_latest: ${{ !inputs.is_prerelease }}
           files: |
             zed.exe
             zed-opengl.exe
             zed.zip
             zed-opengl.zip
             sha256sums.txt
+          token: ${{ secrets.GITHUB_TOKEN }}
