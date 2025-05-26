@@ -42,5 +42,5 @@ $config["target"][$targetKey]["rustflags"] = $rflagsArray
 # Save the modified config back to the file
 $config | ConvertTo-Toml -Depth 5 | Out-File -FilePath $configPath -Encoding UTF8
 
-Write-Host "Set rustflags in $configPath:"
+Write-Host "Set rustflags in ${configPath}:"
 Write-Host ($rflagsArray -join " ")
