@@ -53,9 +53,7 @@ jobs:
     if: ${{ needs.check_stable_releases.outputs.should_build == 'true' }}
     uses: ./.github/workflows/build.yml
     with:
-      repository: kumarsaurabhkv/zedwin  # or zed-industries/zed
       ref: ${{ needs.check_stable_releases.outputs.build_ref }}
-
 
   trigger_release:
     name: Release
