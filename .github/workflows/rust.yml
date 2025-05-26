@@ -35,12 +35,8 @@ jobs:
         shell: pwsh
         run: Install-Module -Name PSToml -Scope CurrentUser -Force
 
-      - name: Checkout Zed repo
+      - name: Checkout Zed
         uses: actions/checkout@v4
-        with:
-          repository: zed-industries/zed
-          ref: main
-          path: zed
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@stable
@@ -53,22 +49,20 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.backend }}
-          workspaces: "zed -> zed/target"
+          workspaces: "-> target"
 
       - name: Setup rustflags
         shell: pwsh
         run: ./Parse-Rustflags.ps1 "${{ matrix.rustflags }}"
-        working-directory: zed
 
       - name: Build release
-        working-directory: zed
         run: cargo build --release
 
       - name: Archive build
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: zed/target/release/zed.exe
+          path: target/release/zed.exe
 
   release:
     needs: build
