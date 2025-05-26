@@ -1,40 +1,11 @@
-param (
-    [string]$RustFlags
-)
+$rustflags = $args
 
-if (-not $RustFlags) {
-    Write-Host "No rustflags provided. Skipping setup."
-    exit 0
+if ($rustflags.Length -eq 0) {
+	Write-Host "No rustflags provided"
+	exit 0
 }
 
-$cargoDir = ".cargo"
-if (-not (Test-Path $cargoDir)) {
-    New-Item -ItemType Directory -Path $cargoDir | Out-Null
-}
-
-$configPath = "$cargoDir/config.toml"
-
-# Load or initialize config
-if (Test-Path $configPath) {
-    $config = Get-Content $configPath | ConvertFrom-Toml
-} else {
-    $config = @{}
-}
-
-if (-not $config.ContainsKey("target")) {
-    $config["target"] = @{}
-}
-
-$targetKey = "cfg(all())"
-if (-not $config["target"].ContainsKey($targetKey)) {
-    $config["target"][$targetKey] = @{}
-}
-
-$rflagsArray = $RustFlags -split '\s+'
-$config["target"][$targetKey]["rustflags"] = $rflagsArray
-
-# Write back the TOML
-$config | ConvertTo-Toml -Depth 5 | Out-File -FilePath $configPath -Encoding UTF8
-
-# Properly wrap variable so the ":" is not mistaken for part of the name
-Write-Host "Set rustflags in ${configPath}: $RustFlags"
+$config_path = ".cargo/config.toml"
+$config = Get-Content $config_path | ConvertFrom-Toml
+$config.target.Item("cfg(all())").rustflags = $rustflags
+$config | ConvertTo-Toml -Depth 5 | Out-File $config_path
