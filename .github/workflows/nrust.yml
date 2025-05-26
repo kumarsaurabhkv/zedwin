@@ -12,6 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable long paths in Git
+        run: git config --system core.longpaths true
+
+      - name: Enable long paths in Windows
+        shell: powershell
+        run: |
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -21,16 +30,19 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "-> target"
+          workspaces: "-> C:\\target"
 
-      - name: Build Zed
+      - name: Build Zed (with short Cargo paths)
         run: cargo build --release
+        env:
+          CARGO_HOME: C:\cargo
+          CARGO_TARGET_DIR: C:\target
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: zed-release
-          path: target/release/zed.exe
+          path: C:\target\release\zed.exe
 
   release:
     needs: build
