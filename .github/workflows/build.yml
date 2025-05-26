@@ -6,7 +6,7 @@ on:
       repository:
         description: Repository to clone and build
         type: string
-        default: zed-industries/zed
+        default: kumarsaurabhkv/zedwin
       ref:
         description: Branch/tag/ref to build
         type: string
@@ -16,7 +16,7 @@ on:
       repository:
         description: Repository to clone and build
         type: string
-        default: zed-industries/zed
+        default: kumarsaurabhkv/zedwin
       ref:
         description: Branch/tag/ref to build
         type: string
