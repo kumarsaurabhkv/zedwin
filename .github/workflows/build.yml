@@ -1,9 +1,18 @@
 name: Build
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref (tag or branch) to checkout and build
+        type: string
+        required: true
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (tag or branch) to build
+        type: string
+        default: main
 
 jobs:
   build:
@@ -29,31 +38,30 @@ jobs:
           New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
             -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
 
-      - name: Install rust nightly
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly
           override: true
-          target: wasm32-wasip1
 
-      - name: Rust Cache
+      - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.backend }}
-          workspaces: "."
 
       - name: Setup rustflags
         shell: pwsh
-        run: |
-          $flags = "${{ matrix.rustflags }}"
-          if ($flags) {
-            echo "RUSTFLAGS=$flags" | Out-File -FilePath $env:GITHUB_ENV -Append
-          }
+        run: ./Parse-Rustflags.ps1 ${{ matrix.rustflags }}
 
       - name: Build release
         run: cargo build --release
 
-      - name: Archive build
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
