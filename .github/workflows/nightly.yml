@@ -20,7 +20,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Set repository and ref based on inputs
-          REPO="zed-industries/zed"
+          REPO="kumarsaurabhkv/zedwin"
           REF="main"
           
           # Get latest commit info
