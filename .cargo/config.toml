@@ -1,40 +1,29 @@
 [build]
-# Use the v0 symbol mangling scheme for clearer backtraces
-# Enable unstable features in tokio
-rustflags = [
-    "-C", "symbol-mangling-version=v0",
-    "--cfg", "tokio_unstable"
-]
+# v0 mangling scheme provides more detailed backtraces around closures
+rustflags = ["-C", "symbol-mangling-version=v0", "--cfg", "tokio_unstable"]
 
 [alias]
-# Define a shortcut for running the xtask binary
 xtask = "run --package xtask --"
 
-# Platform-specific settings for Linux (x86_64)
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
-rustflags = [
-    "-C", "link-arg=-fuse-ld=mold"
-]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
-# Platform-specific settings for Linux (aarch64)
 [target.aarch64-unknown-linux-gnu]
 linker = "clang"
-rustflags = [
-    "-C", "link-arg=-fuse-ld=mold"
-]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
-# Platform-specific settings for Windows
 [target.'cfg(target_os = "windows")']
 rustflags = [
-    "--cfg", "windows_slim_errors",         # Reduce windows::core::Error size
-    "-C", "target-feature=+crt-static"      # Enable static CRT linking
+  "--cfg", "windows_slim_errors",
+  "-C", "target-feature=+crt-static"
 ]
 
+[target."cfg(all())"]
+rustflags = []
+
 [env]
-# Set minimum macOS deployment target for compatibility
 MACOSX_DEPLOYMENT_TARGET = "10.15.7"
 
 [profile.release]
-# Disable debug info in release builds (set to true if needed for profiling)
 debug = false
