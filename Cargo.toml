@@ -695,7 +695,7 @@ uuid = { version = "1.1.2", features = ["v4", "v5", "v7", "serde"] }
 walkdir = "2.5"
 wasm-encoder = "0.221"
 wasmparser = "0.221"
-wasmtime = { version = "29", default-features = false, features = [
+wasmtime = { version = "36", default-features = false, features = [
     "async",
     "demangle",
     "runtime",
@@ -704,7 +704,7 @@ wasmtime = { version = "29", default-features = false, features = [
     "incremental-cache",
     "parallel-compilation",
 ] }
-wasmtime-wasi = "29"
+wasmtime-wasi = "33"
 wax = "0.6"
 which = "6.0.0"
 windows-core = "0.61"
